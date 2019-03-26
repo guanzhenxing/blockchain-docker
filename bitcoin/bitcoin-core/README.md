@@ -1,6 +1,6 @@
 # bitcoin-core
 
-bitcoin-core 的 docker 镜像。
+bitcoin-core 的 docker 镜像。镜像在 Docker Hub 上的地址为： [webfuse/bitcoin-core-docker](https://hub.docker.com/r/webfuse/bitcoin-core-docker)
 
 ## Tags
 
@@ -8,10 +8,41 @@ bitcoin-core 的 docker 镜像。
 
 ## 怎么使用
 
-## License
+使用最新的版本：
 
-[License information](https://github.com/bitcoin/bitcoin/blob/master/COPYING) for the software contained in this image.
+```shell
+docker run webfuse/bitcoin-core-docker
+```
 
-[License information](https://github.com/ruimarinho/docker-bitcoin-core/blob/master/LICENSE) for the [ruimarinho/docker-bitcoin-core][docker-hub-url] docker project.
+使用指定的版本，以下代码中的 `<Version>` 请替换为相应的版本，如： 0.17.1
 
-[License information](https://github.com/guanzhenxing/blockchain-docker-hub/blob/master/LICENSE) for the [guanzhenxing/blockchain-docker-hub][docker-hub-url] docker project.
+```shell
+docker run webfuse/bitcoin-core-docker:<Version>
+```
+
+使用指定的参数：
+
+```shell
+docker run webfuse/bitcoin-core-docker bitcoind -testnet
+```
+
+或
+
+```shell
+docker run webfuse/bitcoin-core-docker \
+  -printtoconsole \
+  -regtest=1
+```
+
+查看是否运行的方法：
+
+```shell
+docker ps
+```
+
+或
+
+```shell
+ docker logs -f bitcoind
+```
+

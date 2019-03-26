@@ -6,32 +6,42 @@ ENV HOME /root
 CMD ["/sbin/my_init"]
 
 RUN groupadd -r bitcoin && useradd -r -m -g bitcoin bitcoin
-RUN apt-get update -y \
-  && apt-get install -y curl gnupg gosu \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN set -ex \
+    && apt-get update \
+    && apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu gpg wget procps \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV BITCOIN_VERSION=0.17.1
-ENV BITCOIN_DATA=/home/bitcoin/.bitcoin
 ENV PATH=/opt/bitcoin-${BITCOIN_VERSION}/bin:$PATH
 
-RUN curl -SL https://bitcoin.org/laanwj-releases.asc | gpg --batch --import \
-  && curl -SLO https://bitcoin.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc \
-  && curl -SLO https://bitcoin.org/bin/bitcoin-core-${BITCOIN_VERSION}/bitcoin-${BITCOIN_VERSION}-x86_64-linux-gnu.tar.gz \
-  && gpg --verify SHA256SUMS.asc \
-  && grep " bitcoin-${BITCOIN_VERSION}-x86_64-linux-gnu.tar.gz\$" SHA256SUMS.asc | sha256sum -c - \
-  && tar -xzf *.tar.gz -C /opt \
-  && rm *.tar.gz *.asc
+RUN set -ex \
+    && BITCOIN_ARCHIVE=bitcoin-${BITCOIN_VERSION}-$(uname -m)-linux-gnu.tar.gz \
+    && cd /tmp \
+    && wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/${BITCOIN_ARCHIVE} \
+    && wget -q https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc \
+    && wget -q https://bitcoin.org/laanwj-releases.asc \
+    && SHA256=`grep "${BITCOIN_ARCHIVE}" SHA256SUMS.asc | awk '{print $1}'` \
+    && echo "$SHA256 ${BITCOIN_ARCHIVE}" | sha256sum -c - \
+    && gpg --no-tty --import ./laanwj-releases.asc \
+    && gpg --no-tty --verify SHA256SUMS.asc \
+    && tar -xzf ${BITCOIN_ARCHIVE} -C /usr/local --strip-components=1 --exclude=*-qt \
+    && rm -rf /tmp/* \
+    && bitcoind --version    
 
-# finish, clean apt.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# create data directory
+ENV BITCOIN_DATA /home/bitcoin/.bitcoin
+RUN mkdir "$BITCOIN_DATA" \
+    && chown -R bitcoin:bitcoin "$BITCOIN_DATA" \
+    && ln -sfn "$BITCOIN_DATA" /home/bitcoin/.bitcoin \
+    && chown -h bitcoin:bitcoin /home/bitcoin/.bitcoin
+VOLUME /home/bitcoin/.bitcoin
 
 COPY docker-entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
-VOLUME ["/home/bitcoin/.bitcoin"]
+# clean apt.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8332 8333 18332 18333 18443 18444
-
-ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["bitcoind"]
