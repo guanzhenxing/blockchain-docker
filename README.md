@@ -1,6 +1,7 @@
-# blockchain-docker
+# blockchain-docker-hub
 
+常用区块链项目的 docker 集合
 
+## Bitcoin
 
-https://github.com/ruimarinho/docker-bitcoin-core/blob/master/README.md
-https://github.com/lightningcn/bitcoin-docker/blob/master/Bitcoin/0.17.1/docker-entrypoint.sh
+## Ethereum
