@@ -8,6 +8,10 @@ bitcoin-core 的 docker 镜像。镜像在 Docker Hub 上的地址为： [webfus
 
 ## 怎么使用
 
+```shell
+docker pull webfuse/bitcoin-core-docker
+```
+
 使用最新的版本：
 
 ```shell
@@ -21,12 +25,6 @@ docker run webfuse/bitcoin-core-docker:<Version>
 ```
 
 使用指定的参数：
-
-```shell
-docker run webfuse/bitcoin-core-docker bitcoind -testnet
-```
-
-或
 
 ```shell
 docker run webfuse/bitcoin-core-docker \
@@ -46,3 +44,9 @@ docker ps
  docker logs -f bitcoind
 ```
 
+
+
+---
+https://github.com/ruimarinho/docker-bitcoin-core/blob/master/0.17/docker-entrypoint.sh
+
+https://github.com/NicolasDorier/docker-bitcoin
