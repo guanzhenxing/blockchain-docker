@@ -2,17 +2,23 @@ FROM phusion/baseimage:0.11
 
 ENV HOME /root
 
+LABEL MAINTAINER="Jesen Kwan <guan.zhenxing@foxmail.com>"
+
 # init baseimage-docker
 CMD ["/sbin/my_init"]
 
+ARG BITCOIN_VERSION=0.17.1
+
+ENV BITCOIN_DIR=/home/bitcoin/.bitcoin
+ENV PATH=/opt/bitcoin-${BITCOIN_VERSION}/bin:$PATH
+
+
 RUN groupadd -r bitcoin && useradd -r -m -g bitcoin bitcoin
+
 RUN set -ex \
     && apt-get update \
     && apt-get install -qq --no-install-recommends ca-certificates dirmngr gosu gpg wget procps \
     && rm -rf /var/lib/apt/lists/*
-
-ENV BITCOIN_VERSION=0.17.1
-ENV PATH=/opt/bitcoin-${BITCOIN_VERSION}/bin:$PATH
 
 RUN set -ex \
     && BITCOIN_ARCHIVE=bitcoin-${BITCOIN_VERSION}-$(uname -m)-linux-gnu.tar.gz \
@@ -26,22 +32,15 @@ RUN set -ex \
     && gpg --no-tty --verify SHA256SUMS.asc \
     && tar -xzf ${BITCOIN_ARCHIVE} -C /usr/local --strip-components=1 --exclude=*-qt \
     && rm -rf /tmp/* \
-    && bitcoind --version    
-
-# create data directory
-ENV BITCOIN_DATA /home/bitcoin/.bitcoin
-RUN mkdir "$BITCOIN_DATA" \
-    && chown -R bitcoin:bitcoin "$BITCOIN_DATA" \
-    && ln -sfn "$BITCOIN_DATA" /home/bitcoin/.bitcoin \
-    && chown -h bitcoin:bitcoin /home/bitcoin/.bitcoin
-VOLUME /home/bitcoin/.bitcoin
+    && bitcoind --version
 
 # clean apt.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8332 8333 18332 18333 18443 18444
 
-COPY docker-entrypoint.sh /bitcoind-start.sh
-ENTRYPOINT ["/bitcoind-start.sh"]
+COPY docker-entrypoint.sh /usr/local/bin/docker-bitcoind-start.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-bitcoind-start.sh"]
 
 CMD ["bitcoind"]

@@ -1,1 +1,1 @@
-docker build -t webfuse/bitcoin-core-docker .
+docker build -t webfuse/bitcoin-core:0.17.1 -t webfuse/bitcoin-core .
